@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квиз психологија</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+<div class="q-container">
+    <h1>Квиз психологија</h1>
+
+    <div id="start-container">
+        <input id="name-input" type="text" placeholder="Внеси го твоето име" maxlength="50" />
+        <button id="start-btn" class="btn-primary" disabled>Продолжи</button>
+    </div>
+
+    <div id="quiz-selector" class="quiz-selector">
+        <h2>Избери квиз:</h2>
+        <div class="quiz-cards">
+            <div class="quiz-card" data-quiz="basic">
+                <h3>🧠 Основи на психологијата</h3>
+                <p>Основни концепти, теории и пионери во психологијата</p>
+                <div class="difficulty">Лесно</div>
+            </div>
+            <div class="quiz-card" data-quiz="cognitive">
+                <h3>💭 Когнитивна психологија</h3>
+                <p>Меморија, учење, мислење и когнитивни процеси</p>
+                <div class="difficulty">Средно</div>
+            </div>
+            <div class="quiz-card" data-quiz="clinical">
+                <h3>🏥 Клиничка психологија</h3>
+                <p>Ментално здравје, дијагнози и терапии</p>
+                <div class="difficulty">Тешко</div>
+            </div>
+        </div>
+        <button id="select-quiz-btn" class="btn-primary" disabled>Почни го избраниот квиз</button>
+    </div>
+
+    <div id="quiz-content" style="display:none;">
+        <div class="quiz-stats">
+            <div class="stat-item">
+                <span>📊 Прашање: <span id="current-question">1</span> / <span id="total-questions">10</span></span>
+            </div>
+            <div class="stat-item">
+                <span>Точни: <span id="correct-count">0</span></span>
+            </div>
+        </div>
+
+        <div id="progress-bar-container">
+            <div id="progress-bar"></div>
+        </div>
+
+        <p id="question" class="fade-in"></p>
+        <div class="answers"></div>
+        <button id="next-q-btn" class="btn-primary" style="display:none;">Следно прашање</button>
+        <p id="score"></p>
+        <p id="final-message"></p>
+        <button id="share-btn" class="btn-secondary" style="display:none;">Сподели го твојот резултат</button>
+    </div>
+</div>
+
+<script>
+    class PsychologyQuiz {
+        constructor() {
+            this.quizzes = {
+                basic: [{
+                    question: "Кој е основачот на психоанализата?",
+                    answers: ["Карл Јунг", "Сигмунд Фројд", "Б.Ф. Скинер", "Вилхелм Вундт"],
+                    correct: 1
+                }, {
+                    question: "Кој тип на меморија трае најдолго?",
+                    answers: ["Сензорна", "Краткорочна", "Долгорочна", "Работна"],
+                    correct: 2
+                }, {
+                    question: "Што проучува когнитивната психологија?",
+                    answers: ["Однесување", "Мисловни процеси", "Мотиви", "Емоции"],
+                    correct: 1
+                }, {
+                    question: "Која е главната цел на хуманистичката психологија?",
+                    answers: ["Да ги проучи менталните болести", "Да ја развие свесноста за личниот раст и потенцијал", "Да ги мапира мозочните структури", "Да го објасни однесувањето преку условување"],
+                    correct: 1
+                }, {
+                    question: "Како се вика личноста која прва ја користи лабораторијата во психологијата?",
+                    answers: ["Фројд", "Скинер", "Вундт", "Роџерс"],
+                    correct: 2
+                }, {
+                    question: "Кој термин се однесува на 'борба или бегство' одговор?",
+                    answers: ["Хомеостаза", "Активирање", "Стрес", "Симпатички одговор"],
+                    correct: 3
+                }, {
+                    question: "Која теорија објаснува мотивацијата со потребите?",
+                    answers: ["Теорија на цел", "Масловата хиерархија", "Инстинктивна теорија", "Дво-факторска теорија"],
+                    correct: 1
+                }, {
+                    question: "Што е емпатија?",
+                    answers: ["Самоанализа", "Познавање на факти", "Способност да се чувствуваат туѓи емоции", "Контрола на емоции"],
+                    correct: 2
+                }, {
+                    question: "Која личност го развила тестот за IQ?",
+                    answers: ["Бине", "Фројд", "Вундт", "Пијаже"],
+                    correct: 0
+                }, {
+                    question: "Што означува терминот 'перцепција'?",
+                    answers: ["Мислење", "Чувство", "Обработка на сензации", "Поттик"],
+                    correct: 2
+                }],
+                cognitive: [{
+                    question: "Колку информации може да се чуваат во краткорочната меморија истовремено?",
+                    answers: ["5±2 единици", "7±2 единици", "9±2 единици", "Неограничено"],
+                    correct: 1
+                }, {
+                    question: "Што е работната меморија?",
+                    answers: ["Долгорочно складирање", "Активно манипулирање на информации", "Автоматски процеси", "Сензорна обработка"],
+                    correct: 1
+                }, {
+                    question: "Кој модел на меморија вклучува сензорен регистар?",
+                    answers: ["Атkinson-Shiffrin модел", "Baddeley модел", "Craik-Lockhart модел", "Tulving модел"],
+                    correct: 0
+                }, {
+                    question: "Што е метакогниција?",
+                    answers: ["Мислење за мислењето", "Емоционална интелигенција", "Социјално учење", "Перцептивни процеси"],
+                    correct: 0
+                }, {
+                    question: "Кој ефект означува подобра меморија за првите и последните ставки?",
+                    answers: ["Halo ефект", "Серијален позициски ефект", "Прiming ефект", "Контекстуален ефект"],
+                    correct: 1
+                }, {
+                    question: "Што е когнитивна дисонанца?",
+                    answers: ["Конфликт меѓу ставови и однесување", "Губење на меморија", "Проблеми со концентрација", "Социјална анксиозност"],
+                    correct: 0
+                }, {
+                    question: "Кој дел од мозокот е најважен за формирање нови спомени?",
+                    answers: ["Амигдала", "Хипокампус", "Таламус", "Церебелум"],
+                    correct: 1
+                }, {
+                    question: "Што се схеми во когнитивната психологија?",
+                    answers: ["Ментални модели за организирање знаење", "Неврални мрежи", "Бихевиорални обрасци", "Емоционални реакции"],
+                    correct: 0
+                }, {
+                    question: "Кој психолог е познат по теоријата за множествена интелигенција?",
+                    answers: ["Howard Gardner", "Robert Sternberg", "Daniel Goleman", "Lewis Terman"],
+                    correct: 0
+                }, {
+                    question: "Што е executive function?",
+                    answers: ["Контрола на импулси", "Работна меморија", "Когнитивна флексибилност", "Сите од наведените"],
+                    correct: 3
+                }],
+                clinical: [{
+                    question: "Според DSM-5, колку главни категории на ментални нарушувања постојат?",
+                    answers: ["15", "20", "22", "25"],
+                    correct: 2
+                }, {
+                    question: "Што е коморбидитет во клиничката психологија?",
+                    answers: ["Присуство на повеќе дијагнози истовремено", "Семејна историја на болест", "Хронична болест", "Резистентност на терапија"],
+                    correct: 0
+                }, {
+                    question: "Кој тип на терапија се фокусира на менување на негативни мисловни обрасци?",
+                    answers: ["Психоаналитичка", "Хуманистичка", "Когнитивно-бихевиорална", "Системска"],
+                    correct: 2
+                }, {
+                    question: "Што е дијагностичка интервју?",
+                    answers: ["Структуриран разговор за оценување", "Психолошки тест", "Медицински преглед", "Групна терапија"],
+                    correct: 0
+                }, {
+                    question: "Кој е главниот симптом на генерализирано анксиозно нарушување?",
+                    answers: ["Панични напади", "Социјален страв", "Постојана загриженост", "Опсесии"],
+                    correct: 2
+                }, {
+                    question: "Што е терапевтска алијанса?",
+                    answers: ["Соработка меѓу терапевт и клиент", "Групна терапевтска сесија", "Медикаментозно лекување", "Семејна терапија"],
+                    correct: 0
+                }, {
+                    question: "Кој е главен критериум за дијагноза на депресија?",
+                    answers: ["Загуба на интерес или задоволство", "Проблеми со спиење", "Промени во апетит", "Чувство на вина"],
+                    correct: 0
+                }, {
+                    question: "Што е психоедукација?",
+                    answers: ["Образование за ментално здравје", "Професионална обука", "Академско образование", "Социјални вештини"],
+                    correct: 0
+                }, {
+                    question: "Кој приод се користи во дијалектичко-бихевиоралната терапија?",
+                    answers: ["Прифаќање и промена", "Анализа на сонови", "Слободни асоцијации", "Ролeplaying"],
+                    correct: 0
+                }, {
+                    question: "Што е резилиентност во клиничката психологија?",
+                    answers: ["Способност за опоравување од трауми", "Отпорност на болести", "Генетска предиспозиција", "Социјална поддршка"],
+                    correct: 0
+                }]
+            };
+
+            this.currentQuiz = null;
+            this.currentQuestion = 0;
+            this.score = 0;
+            this.userName = "";
+            this.isAnswered = false;
+            this.startTime = null;
+            this.selectedQuizType = null;
+
+            this.initializeElements();
+            this.bindEvents();
+        }
+
+        initializeElements() {
+            this.elements = {
+                startContainer: document.getElementById("start-container"),
+                quizSelector: document.getElementById("quiz-selector"),
+                quizContent: document.getElementById("quiz-content"),
+                nameInput: document.getElementById("name-input"),
+                startBtn: document.getElementById("start-btn"),
+                selectQuizBtn: document.getElementById("select-quiz-btn"),
+                questionEl: document.getElementById("question"),
+                answersContainer: document.querySelector(".answers"),
+                nextBtn: document.getElementById("next-q-btn"),
+                userScore: document.getElementById("score"),
+                progressBar: document.getElementById("progress-bar"),
+                shareBtn: document.getElementById("share-btn"),
+                finalMsg: document.getElementById("final-message"),
+                currentQuestionSpan: document.getElementById("current-question"),
+                totalQuestionsSpan: document.getElementById("total-questions"),
+                correctCountSpan: document.getElementById("correct-count"),
+                quizCards: document.querySelectorAll(".quiz-card")
+            };
+        }
+
+        bindEvents() {
+            this.elements.startBtn.addEventListener("click", () => this.showQuizSelector());
+            this.elements.selectQuizBtn.addEventListener("click", () => this.startQuiz());
+            this.elements.nextBtn.addEventListener("click", () => this.nextQuestion());
+            this.elements.shareBtn.addEventListener("click", () => this.shareResult());
+
+            this.elements.nameInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter" && !this.elements.startBtn.disabled) {
+                    this.showQuizSelector();
+                }
+            });
+
+            this.elements.nameInput.addEventListener("input", (e) => {
+                this.elements.startBtn.disabled = e.target.value.trim() === "";
+            });
+
+            // Quiz card selection
+            this.elements.quizCards.forEach((card, index) => {
+                card.addEventListener("click", () => this.selectQuiz(card, index));
+            });
+
+            // Navigation dots
+            this.elements.navDots = document.querySelectorAll(".nav-dot");
+            this.elements.navDots.forEach((dot, index) => {
+                dot.addEventListener("click", () => this.scrollToQuiz(index));
+            });
+
+            // Scroll detection for navigation dots
+            this.elements.quizCardsContainer = document.querySelector(".quiz-cards");
+            this.elements.quizCardsContainer.addEventListener("scroll", () => this.updateNavDots());
+        }
+
+        scrollToQuiz(index) {
+            const card = this.elements.quizCards[index];
+            const container = this.elements.quizCardsContainer;
+            const cardWidth = card.offsetWidth + 25; // including gap
+            container.scrollTo({
+                left: cardWidth * index,
+                behavior: 'smooth'
+            });
+        }
+
+        updateNavDots() {
+            const container = this.elements.quizCardsContainer;
+            const scrollLeft = container.scrollLeft;
+            const cardWidth = this.elements.quizCards[0].offsetWidth + 25;
+            const activeIndex = Math.round(scrollLeft / cardWidth);
+
+            this.elements.navDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        selectQuiz(selectedCard, index) {
+            // Remove selection from all cards
+            this.elements.quizCards.forEach(card => {
+                card.classList.remove("selected");
+            });
+
+            // Add selection to clicked card
+            selectedCard.classList.add("selected");
+            this.selectedQuizType = selectedCard.dataset.quiz;
+            this.elements.selectQuizBtn.disabled = false;
+
+            // Update navigation dots
+            this.elements.navDots.forEach((dot, dotIndex) => {
+                dot.classList.toggle('active', dotIndex === index);
+            });
+        }
+
+        showQuizSelector() {
+            const enteredName = this.elements.nameInput.value.trim();
+            if (!enteredName) {
+                this.showError("Ве молам внеси го твоето име за да продолжиш.");
+                this.elements.nameInput.focus();
+                return;
+            }
+
+            if (enteredName.length < 2) {
+                this.showError("Името мора да има најмалку 2 карактери.");
+                this.elements.nameInput.focus();
+                return;
+            }
+
+            this.userName = enteredName;
+            this.elements.startContainer.style.display = "none";
+            this.elements.quizSelector.style.display = "block";
+
+            // Initialize navigation dots
+            setTimeout(() => this.updateNavDots(), 100);
+        }
+
+        startQuiz() {
+            if (!this.selectedQuizType) {
+                this.showError("Ве молам изберете квиз.");
+                return;
+            }
+
+            this.currentQuiz = this.quizzes[this.selectedQuizType];
+            this.elements.totalQuestionsSpan.textContent = this.currentQuiz.length;
+            this.startTime = Date.now();
+            this.elements.quizSelector.style.display = "none";
+            this.elements.quizContent.style.display = "block";
+            this.showQuestion();
+        }
+
+        showError(message) {
+            const existingError = document.querySelector(".error-message");
+            if (existingError) existingError.remove();
+
+            const errorDiv = document.createElement("div");
+            errorDiv.className = "error-message";
+            errorDiv.textContent = message;
+
+            const container = this.elements.quizSelector.style.display === "block" ?
+                this.elements.quizSelector :
+                this.elements.nameInput.parentNode;
+
+            container.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 3000);
+        }
+
+        updateProgressBar() {
+            const progressPercent = (this.currentQuestion / this.currentQuiz.length) * 100;
+            this.elements.progressBar.style.width = progressPercent + "%";
+        }
+
+        updateStats() {
+            this.elements.currentQuestionSpan.textContent = this.currentQuestion + 1;
+            this.elements.correctCountSpan.textContent = this.score;
+        }
+
+        showQuestion() {
+            this.isAnswered = false;
+            this.updateProgressBar();
+            this.updateStats();
+
+            const q = this.currentQuiz[this.currentQuestion];
+            this.elements.questionEl.textContent = q.question;
+            this.elements.questionEl.className = "fade-in";
+
+            this.elements.answersContainer.innerHTML = "";
+            this.elements.nextBtn.style.display = "none";
+            this.elements.finalMsg.textContent = "";
+            this.elements.shareBtn.style.display = "none";
+
+            q.answers.forEach((answer, index) => {
+                const btn = document.createElement("button");
+                btn.textContent = answer;
+                btn.className = "answer-btn fade-in";
+                btn.style.animationDelay = `${index * 0.1}s`;
+                btn.addEventListener("click", () => this.selectAnswer(index, btn));
+                this.elements.answersContainer.appendChild(btn);
+            });
+
+            this.elements.userScore.textContent = `Поени: ${this.score}`;
+        }
+
+        selectAnswer(selectedIndex, clickedBtn) {
+            if (this.isAnswered) return;
+            this.isAnswered = true;
+
+            const buttons = document.querySelectorAll(".answer-btn");
+            buttons.forEach(btn => btn.disabled = true);
+
+            const correctIndex = this.currentQuiz[this.currentQuestion].correct;
+
+            setTimeout(() => {
+                if (selectedIndex === correctIndex) {
+                    this.score++;
+                    clickedBtn.classList.add("correct");
+                    this.updateStats();
+                } else {
+                    clickedBtn.classList.add("incorrect");
+                    buttons[correctIndex].classList.add("correct");
+                }
+
+                this.elements.userScore.textContent = `Поени: ${this.score}`;
+                this.elements.nextBtn.style.display = "block";
+                this.elements.nextBtn.classList.add("pulse");
+            }, 300);
+        }
+
+        nextQuestion() {
+            this.elements.nextBtn.classList.remove("pulse");
+            this.currentQuestion++;
+
+            if (this.currentQuestion < this.currentQuiz.length) {
+                this.showQuestion();
+            } else {
+                this.showFinalResult();
+            }
+        }
+
+        showFinalResult() {
+            this.updateProgressBar();
+
+            const timeElapsed = Math.round((Date.now() - this.startTime) / 1000);
+            const percentage = Math.round((this.score / this.currentQuiz.length) * 100);
+
+            this.elements.questionEl.textContent = `Честитки, ${this.userName}! Квизот е завршен.`;
+            this.elements.answersContainer.innerHTML = "";
+            this.elements.nextBtn.style.display = "none";
+
+            this.elements.userScore.innerHTML = `
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">
+                ${this.score} / ${this.currentQuiz.length} поени (${percentage}%)
+            </div>
+            <div style="font-size: 1rem; opacity: 0.8;">
+                Време: ${timeElapsed} секунди
+            </div>
+        `;
+
+            this.elements.shareBtn.style.display = "block";
+            this.elements.finalMsg.textContent = this.getFinalMessage(percentage);
+            this.elements.finalMsg.classList.add("pulse");
+        }
+
+        getFinalMessage(percentage) {
+            if (percentage === 100) return "🏆 Совршен резултат! Вие сте психолошки експерт!";
+            if (percentage >= 80) return "🌟 Одлично знаење! Продолжи така!";
+            if (percentage >= 60) return "👍 Добро, но има простор за подобрување.";
+            if (percentage >= 40) return "📚 Потребно е повеќе учење.";
+            return "💪 Не се откажувај! Обиди се повторно!";
+        }
+
+        shareResult() {
+            const percentage = Math.round((this.score / this.currentQuiz.length) * 100);
+            const quizNames = {
+                basic: "Основи на психологијата",
+                cognitive: "Когнитивна психологија",
+                clinical: "Клиничка психологија"
+            };
+            const quizName = quizNames[this.selectedQuizType];
+            const textToShare = `${this.userName} освоив ${this.score} од ${this.currentQuiz.length} поени (${percentage}%) во квизот "${quizName}"! 🧠✨ Обиди се и ти!`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: "Квиз психологија",
+                    text: textToShare,
+                    url: window.location.href
+                }).catch(error => console.log('Sharing failed:', error));
+            } else {
+                this.copyToClipboard(textToShare + " " + window.location.href);
+            }
+        }
+
+        copyToClipboard(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    this.showNotification("Текстот е копиран!");
+                }).catch(() => {
+                    this.fallbackCopyToClipboard(text);
+                });
+            } else {
+                this.fallbackCopyToClipboard(text);
+            }
+        }
+
+        fallbackCopyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                this.showNotification("Текстот е копиран!");
+            } catch (err) {
+                prompt("Копирај го овој текст:", text);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        showNotification(message) {
+            const notification = document.createElement("div");
+            notification.textContent = message;
+            notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #6bcf7f, #4d9de0);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        `;
+
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.animation = "slideOut 0.3s ease forwards";
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new PsychologyQuiz();
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+    document.head.appendChild(style);
+</script>
+</body>
+</html>
